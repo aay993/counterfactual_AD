@@ -56,6 +56,9 @@ if __name__ == '__main__':
 
     model_class = MODEL_REGISTRY[hparams['model']]
 
+    print(f'The model class is: {model_class}')
+    print(f'The experiment class is: {exp_class}')
+
     model_params = {
         k: v for k, v in hparams.items() if (k in inspect.signature(model_class.__init__).parameters
                                              or k in k in inspect.signature(model_class.__bases__[0].__init__).parameters
@@ -64,9 +67,18 @@ if __name__ == '__main__':
 
     print(f'building model with params: {model_params}')
 
-    model = model_class(**model_params)
+    model = model_class(**model_params) 
+    print(f'The model is defined as: {model}')
 
-    experiment = exp_class.load_from_checkpoint(checkpoint_path, pyro_model=model)
+    class AttrDict(dict):
+        def __init__(self, *args, **kwargs):
+            super(AttrDict, self).__init__(*args, **kwargs)
+            self.__dict__ = self
+
+    hparams = AttrDict(hparams)
+    print(f'The hyperparameters are now: {hparams}')
+
+    experiment = exp_class.load_from_checkpoint(checkpoint_path, hparams = hparams, pyro_model=model)
 
     print(f'Loaded {experiment.__class__}:\n{experiment}')
 

@@ -50,7 +50,8 @@ if __name__ == '__main__':
     logger = TensorBoardLogger(lightning_args.default_root_dir, name=f'{exp_args.experiment}/{exp_args.model}')
     lightning_args.logger = logger
 
-    hparams = groups['experiment']
+    hparams = groups['experiment'] 
+    print(f'The hparams are: {hparams}')
     model_params = groups['model']
 
     for k, v in vars(model_params).items():

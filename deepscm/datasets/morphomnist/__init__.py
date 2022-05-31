@@ -32,7 +32,10 @@ def load_morphomnist_like(root_dir, train: bool = True, columns=None) \
     Returns:
         images, labels, metrics
     """
+    #ALSO SETTING THIS FOR NOW TO LOAD THE TESTING PROGRAM 
+    root_dir = '/Users/ahmedabdulaal/Documents/DSCM_debug/deepscm/assets/data/morphomnist'
     images_path, labels_path, metrics_path = _get_paths(root_dir, train)
+    print(f'The images path is: {images_path}, with a root directory of: {root_dir}')
     images = io.load_idx(images_path)
     labels = io.load_idx(labels_path)
 
