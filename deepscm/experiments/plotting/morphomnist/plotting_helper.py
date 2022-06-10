@@ -1,6 +1,7 @@
 ROOT_PATH = '../../../../'
 MNIST_DATA_PATH = ROOT_PATH + 'assets/data/morphomnist/'
 BASE_LOG_PATH = ROOT_PATH + 'assets/models/morphomnist/SVIExperiment'
+ANOTHER_PATH = '../../../training_checkpoints/SVIExperiment' # adding this to try to load trained model
 
 import sys
 import os
@@ -81,13 +82,15 @@ loaded_models = {}
 
 for exp in experiments:
     try:
-        checkpoint_path = f'{BASE_LOG_PATH}/{exp}/version_0/'
+        # checkpoint_path = f'{BASE_LOG_PATH}/{exp}/version_0/'
+        checkpoint_path = f'{ANOTHER_PATH}/{exp}/version_0/'
 
         base_path = os.path.join(checkpoint_path, 'checkpoints')
         checkpoint_path = os.path.join(base_path, os.listdir(base_path)[0])
 
         ckpt = torch.load(checkpoint_path, map_location=torch.device('cpu'))
-        hparams = ckpt['hparams']
+        # hparams = ckpt['hparams'] # previous function (for checkpoints already trained)
+        hparams = ckpt['hyper_parameters'] # for newly trained model checkpoints 
         
         model_class = MODEL_REGISTRY[hparams['model']]
 

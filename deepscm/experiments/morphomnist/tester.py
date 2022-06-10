@@ -22,9 +22,9 @@ if __name__ == '__main__':
 
     print(f'using checkpoint {checkpoint_path}')
 
-    hparams = torch.load(checkpoint_path, map_location=torch.device('cpu'))['hparams']
-
-    print(f'found hparams: {hparams}')
+    # hparams = torch.load(checkpoint_path, map_location=torch.device('cpu'))['hparams']
+    hparams = torch.load(checkpoint_path, map_location=torch.device('cpu'))['hyper_parameters']
+    print(f'found hparams with keys: {hparams.keys()}')
 
     exp_class = EXPERIMENT_REGISTRY[hparams['experiment']]
 
