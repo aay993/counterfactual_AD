@@ -179,4 +179,6 @@ def plot_intervention_range(model_name, interventions, idx, normalise_all=True, 
     fig.suptitle(suptitle, fontsize=14, y=1.02)
     
     fig.tight_layout()
+    plt.savefig('interactive_plot')
     plt.show()
+    
