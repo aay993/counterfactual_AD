@@ -1,5 +1,5 @@
-from .base_sem_experiment import SVIExperiment
-from .conditional_sem import ConditionalVISEM
+from .base_sem_experiment_adni import SVIExperiment
+from .conditional_sem_adni import ConditionalVISEM
 from .conditional_stn_sem import ConditionalSTNVISEM
 
 __all__ = [

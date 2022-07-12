@@ -48,6 +48,7 @@ class UKBBDataset(Dataset):
 
         img = tv.transforms.Compose(transform_list)(img)
 
-        item['image'] = img
+        # item['image'] = img
+        item['x'] = img
 
         return item

@@ -167,11 +167,11 @@ class BaseCovariateExperiment(pl.LightningModule):
     def prepare_data(self):
         downsample = None if self.hparams.downsample == -1 else self.hparams.downsample
         train_crop_type = self.hparams.train_crop_type if hasattr(self.hparams, 'train_crop_type') else 'random'
-        split_dir = self.hparams.split_dir if hasattr(self.hparams, 'split_dir') else '/vol/biomedic2/np716/data/gemini/ukbb/ventricle_brain/'
-        data_dir = self.hparams.data_dir if hasattr(self.hparams, 'data_dir') else '/vol/biomedic2/bglocker/gemini/UKBB/t0/'
-        self.ukbb_train = UKBBDataset(f'{split_dir}/train.csv', base_path=data_dir, crop_type=train_crop_type, downsample=downsample)  # noqa: E501
-        self.ukbb_val = UKBBDataset(f'{split_dir}/val.csv', base_path=data_dir, crop_type='center', downsample=downsample)
-        self.ukbb_test = UKBBDataset(f'{split_dir}/test.csv', base_path=data_dir, crop_type='center', downsample=downsample)
+        split_dir = '/home/aay993/dscm/DSCM_implementation/assets/data/ukbb'
+        data_dir = '/home/aay993/dscm/DSCM_implementation/assets/data/ukbb/imgs'
+        self.ukbb_train = UKBBDataset(f'{split_dir}/examples.csv', base_path=data_dir, crop_type=train_crop_type, downsample=downsample)  # noqa: E501
+        self.ukbb_val = UKBBDataset(f'{split_dir}/examples.csv', base_path=data_dir, crop_type='center', downsample=downsample)
+        self.ukbb_test = UKBBDataset(f'{split_dir}/examples.csv', base_path=data_dir, crop_type='center', downsample=downsample)
 
         self.torch_device = self.trainer.root_gpu if self.trainer.on_gpu else self.trainer.root_device
 
@@ -358,8 +358,9 @@ class BaseCovariateExperiment(pl.LightningModule):
 
     def get_batch(self, loader):
         batch = next(iter(self.val_loader))
-        if self.trainer.on_gpu:
-            batch = self.trainer.accelerator_backend.to_device(batch, self.torch_device)
+        # if self.trainer.on_gpu:
+        #     batch = self.trainer.accelerator_backend.to_device(batch, self.torch_device)
+        batch = {k: v.to(self.torch_device) if isinstance(v, torch.Tensor) else v for k, v in batch.items()}
         return batch
 
     def log_kdes(self, tag, data, save_img=False):
@@ -418,6 +419,7 @@ class BaseCovariateExperiment(pl.LightningModule):
             counter = counterfactual['x']
             sampled_brain_volume = counterfactual['brain_volume']
             sampled_ventricle_volume = counterfactual['ventricle_volume']
+            print(f'for name: {name}, and data: {data}, we have brain volume: {sampled_brain_volume}')
 
             imgs.append(counter)
             if absolute == 'brain_volume':
@@ -497,8 +499,8 @@ class BaseCovariateExperiment(pl.LightningModule):
 
     @classmethod
     def add_arguments(cls, parser):
-        parser.add_argument('--data_dir', default="/vol/biomedic2/bglocker/gemini/UKBB/t0/", type=str, help="data dir (default: %(default)s)")  # noqa: E501
-        parser.add_argument('--split_dir', default="/vol/biomedic2/np716/data/gemini/ukbb/ventricle_brain/", type=str, help="split dir (default: %(default)s)")  # noqa: E501
+        parser.add_argument('--data_dir', default="/home/aay993/bias_corrected_registered_slices/", type=str, help="data dir (default: %(default)s)")  # noqa: E501
+        parser.add_argument('--split_dir', default="/home/aay993/", type=str, help="split dir (default: %(default)s)")  # noqa: E501
         parser.add_argument('--sample_img_interval', default=10, type=int, help="interval in which to sample and log images (default: %(default)s)")
         parser.add_argument('--train_batch_size', default=64, type=int, help="train batch size (default: %(default)s)")
         parser.add_argument('--test_batch_size', default=64, type=int, help="test batch size (default: %(default)s)")

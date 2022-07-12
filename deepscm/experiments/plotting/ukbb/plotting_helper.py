@@ -40,22 +40,29 @@ cmaps = [cm.Reds, cm.Blues, cm.Greens]
 img_cm = 'Greys_r'
 diff_cm = 'seismic'
 
-from deepscm.datasets.medical.ukbb import UKBBDataset
+from deepscm.datasets.medical.adni import ADNIDataset
 
-data_dir = f'{UKBB_DATA_PATH}/examples.csv'
-base_path = f'{UKBB_DATA_PATH}/imgs/'
+data_dir = '/home/aay993/full_imputed_clinical_covariates.csv'
+base_path = '/home/aay993/bias_corrected_registered_slices/'
 downsample = 3
-ukbb_test = UKBBDataset(data_dir, base_path=base_path, crop_type='center', downsample=downsample)
+ukbb_test = ADNIDataset(data_dir, base_path=base_path, crop_type='center', downsample=downsample)
 
 from deepscm.experiments.medical import ukbb  # noqa: F401
-from deepscm.experiments.medical.base_experiment import EXPERIMENT_REGISTRY, MODEL_REGISTRY
+from deepscm.experiments.medical.base_experiment_adni import EXPERIMENT_REGISTRY, MODEL_REGISTRY
 
-var_name = {'ventricle_volume': 'v', 'brain_volume': 'b', 'sex': 's', 'age': 'a'}
+var_name = {'ventricle_volume': 'v', 
+'brain_volume': 'b', 
+'sex': 's', 'age': 'a',
+'tau': 't', 'education': 'e', 'moca': 'm', 'av45': 'av'}
 value_fmt = {
     'ventricle_volume': lambda s: rf'{float(s)/1000:.4g}\,\mathrm{{ml}}',
     'brain_volume': lambda s: rf'{float(s)/1000:.4g}\,\mathrm{{ml}}',
     'age': lambda s: rf'{int(s):d}\,\mathrm{{y}}',
-    'sex': lambda s: '{}'.format(['\mathrm{female}', '\mathrm{male}'][int(s)])
+    'sex': lambda s: '{}'.format(['\mathrm{male}', '\mathrm{female}'][int(s)]),
+    'tau': lambda s: rf'{int(s):d}\,\mathrm{{y}}',
+    'education': lambda s: rf'{int(s):d}\,\mathrm{{y}}',
+    'moca': lambda s: rf'{int(s):d}\,\mathrm{{y}}',
+    'av45': lambda s: rf'{int(s):d}\,\mathrm{{y}}',
 }
 
 def fmt_intervention(intervention):
@@ -67,29 +74,35 @@ def fmt_intervention(intervention):
         return f"do({all_interventions})"
 
 def prep_data(batch):
-    x = batch['image'].unsqueeze(0) * 255.
+    x = 255. * batch['x'].float().unsqueeze(0)
     age = batch['age'].unsqueeze(0).unsqueeze(0).float()
     sex = batch['sex'].unsqueeze(0).unsqueeze(0).float()
     ventricle_volume = batch['ventricle_volume'].unsqueeze(0).unsqueeze(0).float()
     brain_volume = batch['brain_volume'].unsqueeze(0).unsqueeze(0).float()
-
-    x = x.float()
-
-    return {'x': x, 'age': age, 'sex': sex, 'ventricle_volume': ventricle_volume, 'brain_volume': brain_volume}
-
+    moca = batch['moca'].unsqueeze(0).unsqueeze(0).float()
+    education = batch['education'].unsqueeze(0).unsqueeze(0).float()
+    tau = batch['tau'].unsqueeze(0).unsqueeze(0).float()
+    av45 = batch['av45'].unsqueeze(0).unsqueeze(0).float()
+    apoe = batch['APOE4'].unsqueeze(0).unsqueeze(0).float()
+    slice_number = batch['slice_number'].unsqueeze(0).unsqueeze(0).float()
+    return {'x': x, 'age': age, 'sex': sex, 'ventricle_volume': ventricle_volume,
+            'brain_volume': brain_volume, 'education': education,
+            'tau': tau, 'moca': moca, 'av45': av45, 'APOE4': apoe, 'slice_number': slice_number}
 experiments = ['ConditionalVISEM']
 models = {}
 loaded_models = {}
 
 for exp in experiments:
     try:
-        checkpoint_path = f'{BASE_LOG_PATH}/{exp}/version_0/'
+        # checkpoint_path = f'{BASE_LOG_PATH}/{exp}/version_0/'
+        checkpoint_path = '/home/aay993/dscm/DSCM_implementation/SVIExperiment/ConditionalVISEM/version_99'
 
         base_path = os.path.join(checkpoint_path, 'checkpoints')
         checkpoint_path = os.path.join(base_path, os.listdir(base_path)[0])
 
         ckpt = torch.load(checkpoint_path, map_location=torch.device('cpu'))
-        hparams = ckpt['hparams']
+        # hparams = ckpt['hparams'] # previous function (for checkpoints already trained)
+        hparams = ckpt['hyper_parameters'] # for newly trained model checkpoints 
         
         model_class = MODEL_REGISTRY[hparams['model']]
 
@@ -137,7 +150,7 @@ def plot_gen_intervention_range(model_name, interventions, idx, normalise_all=Tr
         pyro.clear_param_store()
         cond = {k: torch.tensor([[v]]) for k, v in intervention.items()}
         counterfactual = loaded_models[model_name].counterfactual(orig_data, cond, num_samples)
-
+       
         imgs += [counterfactual['x']]
         
         diff = (orig_data['x'] - imgs[-1]).squeeze()

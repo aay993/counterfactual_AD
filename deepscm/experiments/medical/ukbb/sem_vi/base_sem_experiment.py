@@ -388,7 +388,7 @@ class SVIExperiment(BaseCovariateExperiment):
         return metrics
 
     def prep_batch(self, batch):
-        x = batch['image'] * 255.
+        x = batch['x'] * 255.
         age = batch['age'].unsqueeze(1).float()
         sex = batch['sex'].unsqueeze(1).float()
         ventricle_volume = batch['ventricle_volume'].unsqueeze(1).float()
