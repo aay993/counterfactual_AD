@@ -95,7 +95,7 @@ loaded_models = {}
 for exp in experiments:
     try:
         # checkpoint_path = f'{BASE_LOG_PATH}/{exp}/version_0/'
-        checkpoint_path = '/home/aay993/dscm/DSCM_implementation/SVIExperiment/ConditionalVISEM/version_99'
+        checkpoint_path = '/home/aay993/dscm/DSCM_implementation/SVIExperiment/ConditionalVISEM/version_117'
 
         base_path = os.path.join(checkpoint_path, 'checkpoints')
         checkpoint_path = os.path.join(base_path, os.listdir(base_path)[0])

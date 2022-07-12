@@ -47,7 +47,7 @@ if __name__ == '__main__':
         groups[group.title] = argparse.Namespace(**group_dict)
 
     lightning_args = groups['lightning_options']
-    lightning_args.max_epochs = 50 # manually set max number of epochs 
+    lightning_args.max_epochs = 300 # manually set max number of epochs 
 
     logger = TensorBoardLogger(lightning_args.default_root_dir, name=f'{exp_args.experiment}/{exp_args.model}')
     lightning_args.logger = logger
