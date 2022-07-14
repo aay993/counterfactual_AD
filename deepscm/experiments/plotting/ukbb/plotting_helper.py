@@ -59,10 +59,10 @@ value_fmt = {
     'brain_volume': lambda s: rf'{float(s)/1000:.4g}\,\mathrm{{ml}}',
     'age': lambda s: rf'{int(s):d}\,\mathrm{{y}}',
     'sex': lambda s: '{}'.format(['\mathrm{male}', '\mathrm{female}'][int(s)]),
-    'tau': lambda s: rf'{int(s):d}\,\mathrm{{y}}',
-    'education': lambda s: rf'{int(s):d}\,\mathrm{{y}}',
-    'moca': lambda s: rf'{int(s):d}\,\mathrm{{y}}',
-    'av45': lambda s: rf'{int(s):d}\,\mathrm{{y}}',
+    'tau': lambda s: rf'{int(s):d}\,\mathrm{{u}}',
+    'education': lambda s: rf'{int(s):d}\,\mathrm{{u}}',
+    'moca': lambda s: rf'{int(s):d}\,\mathrm{{score}}',
+    'av45': lambda s: rf'{int(s):d}\,\mathrm{{u}}',
 }
 
 def fmt_intervention(intervention):
@@ -228,7 +228,7 @@ def interactive_plot(model_name):
     
     from ipywidgets import interactive, IntSlider, FloatSlider, HBox, VBox, Checkbox, Dropdown
 
-    def plot(image, age, sex, brain_volume, ventricle_volume, do_age, do_sex, do_brain_volume, do_ventricle_volume):
+    def plot(image, age, sex, brain_volume, ventricle_volume, tau, av45, education, moca, do_age, do_sex, do_brain_volume, do_ventricle_volume,  do_tau, do_av45, do_education, do_moca):
         intervention = {}
         if do_age:
             intervention['age'] = age
@@ -238,6 +238,14 @@ def interactive_plot(model_name):
             intervention['brain_volume'] = brain_volume * 1000.
         if do_ventricle_volume:
             intervention['ventricle_volume'] = ventricle_volume * 1000.
+        if do_tau:
+            intervention['tau'] = tau
+        if do_av45: 
+            intervention['av45'] = av45
+        if do_education: 
+            intervention['education'] = education 
+        if do_moca: 
+            intervention['moca'] = moca 
 
         plot_intervention(intervention, image)
 
@@ -247,10 +255,18 @@ def interactive_plot(model_name):
                     do_sex=Checkbox(description='do(sex)'),
               brain_volume=FloatSlider(min=800., max=1600., step=10., continuous_update=False, description='Brain Volume (ml):', style={'description_width': 'initial'}),
               do_brain_volume=Checkbox(description='do(brain_volume)'),
-              ventricle_volume=FloatSlider(min=11., max=110., step=1., continuous_update=False, description='Ventricle Volume (ml):', style={'description_width': 'initial'}),
-              do_ventricle_volume=Checkbox(description='do(ventricle_volume)'),)
+              ventricle_volume=FloatSlider(min=3., max=330., step=1., continuous_update=False, description='Ventricle Volume (ml):', style={'description_width': 'initial'}),
+              do_ventricle_volume=Checkbox(description='do(ventricle_volume)'),
+              tau=FloatSlider(min=5., max=200., step=1., continuous_update=False, description='Phosphorylated tau (unit):', style={'description_width': 'initial'}),
+              do_tau=Checkbox(description='do(tau)'),
+              av45=FloatSlider(min=.5, max=150., step=1., continuous_update=False, description='AV45 (unit):', style={'description_width': 'initial'}),
+              do_av45=Checkbox(description='do(av45)'),
+              education=FloatSlider(min=5., max=50., step=1., continuous_update=False, description='Education (unit):', style={'description_width': 'initial'}),
+              do_education=Checkbox(description='do(education)'),
+              moca=FloatSlider(min=1., max=50., step=1., continuous_update=False, description='MOCA score (unit):', style={'description_width': 'initial'}),
+              do_moca=Checkbox(description='do(moca)'))
 
-    ui = VBox([w.children[0], VBox([HBox([w.children[i + 1], w.children[i + 5]]) for i in range(4)]), w.children[-1]])
+    ui = VBox([w.children[0], VBox([HBox([w.children[i + 1], w.children[i + 9]]) for i in range(8)]), w.children[-1]])
 
 
     display(ui)
