@@ -42,8 +42,10 @@ diff_cm = 'seismic'
 
 from deepscm.datasets.medical.adni import ADNIDataset
 
-data_dir = '/home/aay993/full_imputed_clinical_covariates.csv'
-base_path = '/home/aay993/bias_corrected_registered_slices/'
+# data_dir = '/home/aay993/full_imputed_clinical_covariates.csv' # standard data path 
+base_path = '/home/aay993/bias_corrected_registered_slices/' # standard img path 
+data_dir = '/home/aay993/val_patients_clinical_covariates.csv' # validation data path 
+# base_path = '/home/aay993/validation_brains/slices' # validation img path 
 downsample = 3
 ukbb_test = ADNIDataset(data_dir, base_path=base_path, crop_type='center', downsample=downsample)
 
@@ -196,7 +198,7 @@ def interactive_plot(model_name):
         cond = {k: torch.tensor([[v]]) for k, v in intervention.items()}
         counterfactual = loaded_models[model_name].counterfactual(orig_data, cond, num_samples)
 
-        x = counterfactual['x']
+        x = counterfactual['x'] 
 
         diff = (x_test - x).squeeze()
 
@@ -211,13 +213,15 @@ def interactive_plot(model_name):
         ax[3].set_title('Difference')
         ax[3].imshow(diff, 'seismic', clim=[-lim, lim])
 
+        print(f'the MSE is:{np.mean(np.array(diff)**2)}')
+
         for axi in ax:
             axi.axis('off')
             axi.xaxis.set_major_locator(plt.NullLocator())
             axi.yaxis.set_major_locator(plt.NullLocator())
 
-        att_str = '$s={sex}$\n$a={age}$\n$b={brain_volume}$\n$v={ventricle_volume}$'.format(
-            **{att: value_fmt[att](orig_data[att].item()) for att in ('sex', 'age', 'brain_volume', 'ventricle_volume')}
+        att_str = '$s={sex}$\n$a={age}$\n$b={brain_volume}$\n$v={ventricle_volume}$\n$av45={av45}$\n$tau={tau}$\n$moca={moca}$\n$education={education}$'.format(
+            **{att: value_fmt[att](orig_data[att].item()) for att in ('sex', 'age', 'brain_volume', 'ventricle_volume', 'av45', 'tau', 'moca', 'education')}
         )
 
         ax[0].text(0.5, 0.5, att_str, horizontalalignment='center',
