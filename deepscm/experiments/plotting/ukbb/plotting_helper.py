@@ -20,6 +20,7 @@ import inspect
 from collections import OrderedDict
 from functools import partial
 import torch
+from PIL import Image
 
 from tqdm import tqdm, trange
 
@@ -42,9 +43,10 @@ diff_cm = 'seismic'
 
 from deepscm.datasets.medical.adni import ADNIDataset
 
-# data_dir = '/home/aay993/full_imputed_clinical_covariates.csv' # standard data path 
+data_dir = '/home/aay993/full_imputed_clinical_covariates.csv' # standard data path 
 base_path = '/home/aay993/bias_corrected_registered_slices/' # standard img path 
-data_dir = '/home/aay993/val_patients_clinical_covariates.csv' # validation data path 
+
+# data_dir = '/home/aay993/val_patients_clinical_covariates.csv' # validation data path 
 # base_path = '/home/aay993/validation_brains/slices' # validation img path 
 downsample = 3
 ukbb_test = ADNIDataset(data_dir, base_path=base_path, crop_type='center', downsample=downsample)
@@ -61,10 +63,10 @@ value_fmt = {
     'brain_volume': lambda s: rf'{float(s)/1000:.4g}\,\mathrm{{ml}}',
     'age': lambda s: rf'{int(s):d}\,\mathrm{{y}}',
     'sex': lambda s: '{}'.format(['\mathrm{male}', '\mathrm{female}'][int(s)]),
-    'tau': lambda s: rf'{int(s):d}\,\mathrm{{u}}',
+    'tau': lambda s: rf'{float(s):.4}\,\mathrm{{pg/ml}}',
     'education': lambda s: rf'{int(s):d}\,\mathrm{{u}}',
     'moca': lambda s: rf'{int(s):d}\,\mathrm{{score}}',
-    'av45': lambda s: rf'{int(s):d}\,\mathrm{{u}}',
+    'av45': lambda s: rf'{float(s):.4}\,\mathrm{{mSUVR}}',
 }
 
 def fmt_intervention(intervention):
@@ -154,6 +156,13 @@ def plot_gen_intervention_range(model_name, interventions, idx, normalise_all=Tr
         counterfactual = loaded_models[model_name].counterfactual(orig_data, cond, num_samples)
        
         imgs += [counterfactual['x']]
+
+        # Validation
+        original_image = Image.fromarray(np.array(orig_data['x']).squeeze()).convert("L")
+        original_image.save(f"../../val_segmentations/original_{idx}.png")
+        counterfactual_image = Image.fromarray(np.array(imgs[-1]).squeeze()).convert("L")
+        counterfactual_image.save(f"../../val_segmentations/counterfactual_{idx}.png")
+        # End validation
         
         diff = (orig_data['x'] - imgs[-1]).squeeze()
 
@@ -178,8 +187,8 @@ def plot_gen_intervention_range(model_name, interventions, idx, normalise_all=Tr
             axi.xaxis.set_major_locator(plt.NullLocator())
             axi.yaxis.set_major_locator(plt.NullLocator())
     
-    suptitle = '$s={sex}; a={age}; b={brain_volume}; v={ventricle_volume}$'.format(
-        **{att: value_fmt[att](orig_data[att].item()) for att in ('sex', 'age', 'brain_volume', 'ventricle_volume')}
+    suptitle = '$s={sex}; a={age}; b={brain_volume}; v={ventricle_volume}; t={tau}; av45={av45}$'.format(
+        **{att: value_fmt[att](orig_data[att].item()) for att in ('sex', 'age', 'brain_volume', 'ventricle_volume', 'tau', 'av45')}
     )
     fig.suptitle(suptitle, fontsize=14, y=1.02)
     
@@ -209,6 +218,7 @@ def interactive_plot(model_name):
 
         ax[2].set_title(fmt_intervention(intervention))
         ax[2].imshow(x.squeeze(), 'Greys_r', vmin=0, vmax=255)
+        print(f'image dimensions are: {x.shape}')
 
         ax[3].set_title('Difference')
         ax[3].imshow(diff, 'seismic', clim=[-lim, lim])
@@ -253,7 +263,7 @@ def interactive_plot(model_name):
 
         plot_intervention(intervention, image)
 
-    w = interactive(plot, image=IntSlider(min=0, max=4, description='Image #'), age=FloatSlider(min=30., max=120., step=1., continuous_update=False, description='Age'),
+    w = interactive(plot, image=IntSlider(min=0, max=400, description='Image #'), age=FloatSlider(min=30., max=120., step=1., continuous_update=False, description='Age'),
                     do_age=Checkbox(description='do(age)'),
               sex=Dropdown(options=[('female', 0.), ('male', 1.)], description='Sex'),
                     do_sex=Checkbox(description='do(sex)'),

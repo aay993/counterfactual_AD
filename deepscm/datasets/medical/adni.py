@@ -50,7 +50,7 @@ class ADNIDataset(Dataset):
             elif self.crop_type == 'random':
                 transform_list += [tv.transforms.RandomCrop(self.crop_size)]
             else:
-                raise ValueError('unknwon crop type: {}'.format(self.crop_type))
+                raise ValueError('unknown crop type: {}'.format(self.crop_type))
 
         if self.downsample is not None and self.downsample > 1:
             transform_list += [tv.transforms.Resize(tuple(np.array(self.crop_size) // self.downsample))]
