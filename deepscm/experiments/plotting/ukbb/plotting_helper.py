@@ -43,16 +43,17 @@ diff_cm = 'seismic'
 
 from deepscm.datasets.medical.adni import ADNIDataset
 
-data_dir = '/home/aay993/full_imputed_clinical_covariates.csv' # standard data path 
+# data_dir = '/home/aay993/full_imputed_clinical_covariates.csv' # standard data path 
 base_path = '/home/aay993/bias_corrected_registered_slices/' # standard img path 
 
-# data_dir = '/home/aay993/val_patients_clinical_covariates.csv' # validation data path 
+data_dir = '/home/aay993/val_patients_clinical_covariates.csv' # validation data path 
 # base_path = '/home/aay993/validation_brains/slices' # validation img path 
 downsample = 3
 ukbb_test = ADNIDataset(data_dir, base_path=base_path, crop_type='center', downsample=downsample)
 
 from deepscm.experiments.medical import ukbb  # noqa: F401
 from deepscm.experiments.medical.base_experiment_adni import EXPERIMENT_REGISTRY, MODEL_REGISTRY
+
 
 var_name = {'ventricle_volume': 'v', 
 'brain_volume': 'b', 
@@ -143,7 +144,7 @@ for exp in experiments:
         print(e)
         traceback.print_exc()
         
-def plot_gen_intervention_range(model_name, interventions, idx, normalise_all=True, num_samples=32):
+def plot_gen_intervention_range(model_name, interventions, idx, normalise_all=True, num_samples=32, save=False):
     fig, ax = plt.subplots(3, len(interventions), figsize=(1.6 * len(interventions), 5), gridspec_kw=dict(wspace=0, hspace=0))
     lim = 0
     
@@ -155,14 +156,13 @@ def plot_gen_intervention_range(model_name, interventions, idx, normalise_all=Tr
         cond = {k: torch.tensor([[v]]) for k, v in intervention.items()}
         counterfactual = loaded_models[model_name].counterfactual(orig_data, cond, num_samples)
        
-        imgs += [counterfactual['x']]
+        imgs += [counterfactual['x']] 
 
-        # Validation
-        original_image = Image.fromarray(np.array(orig_data['x']).squeeze()).convert("L")
-        original_image.save(f"../../val_segmentations/original_{idx}.png")
-        counterfactual_image = Image.fromarray(np.array(imgs[-1]).squeeze()).convert("L")
-        counterfactual_image.save(f"../../val_segmentations/counterfactual_{idx}.png")
-        # End validation
+        if save: 
+            original_image = Image.fromarray(np.array(orig_data['x']).squeeze()).convert("L")
+            original_image.save(f"original_{idx}.png")
+            counterfactual_image = Image.fromarray(np.array(imgs[-1]).squeeze()).convert("L")
+            counterfactual_image.save(f"counterfactual_{idx}.png")
         
         diff = (orig_data['x'] - imgs[-1]).squeeze()
 
@@ -190,10 +190,12 @@ def plot_gen_intervention_range(model_name, interventions, idx, normalise_all=Tr
     suptitle = '$s={sex}; a={age}; b={brain_volume}; v={ventricle_volume}; t={tau}; av45={av45}$'.format(
         **{att: value_fmt[att](orig_data[att].item()) for att in ('sex', 'age', 'brain_volume', 'ventricle_volume', 'tau', 'av45')}
     )
-    fig.suptitle(suptitle, fontsize=14, y=1.02)
+    fig.suptitle(suptitle, fontsize=20, y=1.02)
     
     fig.tight_layout()
+    fig.savefig('counterfactual.png', dpi=900, bbox_inches='tight') # Note you're always saving the results here. 
     plt.show()
+    
     
 def interactive_plot(model_name):
     def plot_intervention(intervention, idx, num_samples=32):
