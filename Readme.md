@@ -70,7 +70,7 @@ where `/path/to/root/directory/` refers to the root directory. Note that `Condit
 
 In addition, the provided checkpoints can be used for testing and plotting:
 ```
-python -m deepscm.experiments.morphomnist.tester -c /path/to/checkpoint/version_?
+python -m deepscm.experiments.medical.tester -c /path/to/checkpoint/version_?
 ```
 where `/path/to/checkpoint/version_?` refers to the path containing the specific [pytorch-lightning](https://github.com/PyTorchLightning/pytorch-lightning) run. The notebooks for plotting are situated in [`deepscm/experiments/plotting/`](deepscm/experiments/plotting/).
 
