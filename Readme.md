@@ -1,6 +1,6 @@
 # Deep Structural Causal Modelling of the Clinical and Radiological Phenotype of Alzheimer's Disease
 
-This repository contains code to replicate the experiment in the NeurIPS workshop submission titled: 'Deep Structural Causal Modelling of the Clinical and Radiological Phenotype of Alzheimer's Disease'. 
+This repository contains code to replicate the experiment for the NeurIPS workshop submission titled: 'Deep Structural Causal Modelling of the Clinical and Radiological Phenotype of Alzheimer's Disease'. 
 
 The work builds on the paper 'Deep Structural Causal Models for Tractable Counterfactual Inference' by Pawlowski and Castro et al.: 
 
