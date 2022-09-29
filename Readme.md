@@ -66,7 +66,9 @@ The model can be trained using:
 ```
 python -m deepscm.experiments.medical.trainer -e SVIExperiment -m ConditionalVISEM --default_root_dir /path/to/root/directory/ --downsample 3 --decoder_type fixed_var --train_batch_size 256 --gpus 0
 ```
-where `/path/to/root/directory/` refers to the root directory. Note that `ConditionalVISEM` is the full model (DSCM). The checkpoints are saved in `/path/to/checkpoints` or the provided checkpoints can be used for testing and plotting:
+where `/path/to/root/directory/` refers to the root directory. Note that `ConditionalVISEM` is the full model (DSCM). 
+
+In addition, the provided checkpoints can be used for testing and plotting:
 ```
 python -m deepscm.experiments.morphomnist.tester -c /path/to/checkpoint/version_?
 ```
