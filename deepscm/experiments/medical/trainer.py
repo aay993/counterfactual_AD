@@ -1,4 +1,4 @@
-from . import ukbb  # noqa: F401
+from . import adni  # noqa: F401
 # from .base_experiment_adni import EXPERIMENT_REGISTRY, MODEL_REGISTRY
 from .base_experiment_adni import EXPERIMENT_REGISTRY, MODEL_REGISTRY
 

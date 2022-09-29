@@ -6,7 +6,7 @@ from pyro.distributions import TransformedDistribution
 from pyro.infer.reparam.transform import TransformReparam
 from torch.distributions import Independent
 
-from deepscm.datasets.medical.ukbb import UKBBDataset
+from deepscm.datasets.medical.adni import adniDataset
 from pyro.distributions.transforms import ComposeTransform, SigmoidTransform, AffineTransform
 
 import torchvision.utils
@@ -167,11 +167,11 @@ class BaseCovariateExperiment(pl.LightningModule):
     def prepare_data(self):
         downsample = None if self.hparams.downsample == -1 else self.hparams.downsample
         train_crop_type = self.hparams.train_crop_type if hasattr(self.hparams, 'train_crop_type') else 'random'
-        split_dir = '/home/aay993/dscm/DSCM_implementation/assets/data/ukbb'
-        data_dir = '/home/aay993/dscm/DSCM_implementation/assets/data/ukbb/imgs'
-        self.ukbb_train = UKBBDataset(f'{split_dir}/examples.csv', base_path=data_dir, crop_type=train_crop_type, downsample=downsample)  # noqa: E501
-        self.ukbb_val = UKBBDataset(f'{split_dir}/examples.csv', base_path=data_dir, crop_type='center', downsample=downsample)
-        self.ukbb_test = UKBBDataset(f'{split_dir}/examples.csv', base_path=data_dir, crop_type='center', downsample=downsample)
+        split_dir = '/home/aay993/dscm/DSCM_implementation/assets/data/adni'
+        data_dir = '/home/aay993/dscm/DSCM_implementation/assets/data/adni/imgs'
+        self.adni_train = adniDataset(f'{split_dir}/examples.csv', base_path=data_dir, crop_type=train_crop_type, downsample=downsample)  # noqa: E501
+        self.adni_val = adniDataset(f'{split_dir}/examples.csv', base_path=data_dir, crop_type='center', downsample=downsample)
+        self.adni_test = adniDataset(f'{split_dir}/examples.csv', base_path=data_dir, crop_type='center', downsample=downsample)
 
         self.torch_device = self.trainer.root_gpu if self.trainer.on_gpu else self.trainer.root_device
 
@@ -182,14 +182,14 @@ class BaseCovariateExperiment(pl.LightningModule):
         self.ventricle_volume_range = ventricle_volumes.repeat_interleave(3).unsqueeze(1)
         self.z_range = torch.randn([1, self.hparams.latent_dim], device=self.torch_device, dtype=torch.float).repeat((9, 1))
 
-        self.pyro_model.age_flow_lognorm_loc = (self.ukbb_train.metrics['age'].log().mean().to(self.torch_device).float())
-        self.pyro_model.age_flow_lognorm_scale = (self.ukbb_train.metrics['age'].log().std().to(self.torch_device).float())
+        self.pyro_model.age_flow_lognorm_loc = (self.adni_train.metrics['age'].log().mean().to(self.torch_device).float())
+        self.pyro_model.age_flow_lognorm_scale = (self.adni_train.metrics['age'].log().std().to(self.torch_device).float())
 
-        self.pyro_model.ventricle_volume_flow_lognorm_loc = (self.ukbb_train.metrics['ventricle_volume'].log().mean().to(self.torch_device).float())
-        self.pyro_model.ventricle_volume_flow_lognorm_scale = (self.ukbb_train.metrics['ventricle_volume'].log().std().to(self.torch_device).float())
+        self.pyro_model.ventricle_volume_flow_lognorm_loc = (self.adni_train.metrics['ventricle_volume'].log().mean().to(self.torch_device).float())
+        self.pyro_model.ventricle_volume_flow_lognorm_scale = (self.adni_train.metrics['ventricle_volume'].log().std().to(self.torch_device).float())
 
-        self.pyro_model.brain_volume_flow_lognorm_loc = (self.ukbb_train.metrics['brain_volume'].log().mean().to(self.torch_device).float())
-        self.pyro_model.brain_volume_flow_lognorm_scale = (self.ukbb_train.metrics['brain_volume'].log().std().to(self.torch_device).float())
+        self.pyro_model.brain_volume_flow_lognorm_loc = (self.adni_train.metrics['brain_volume'].log().mean().to(self.torch_device).float())
+        self.pyro_model.brain_volume_flow_lognorm_scale = (self.adni_train.metrics['brain_volume'].log().std().to(self.torch_device).float())
 
         if self.hparams.validate:
             print(f'set ventricle_volume_flow_lognorm {self.pyro_model.ventricle_volume_flow_lognorm.loc} +/- {self.pyro_model.ventricle_volume_flow_lognorm.scale}')  # noqa: E501
@@ -200,14 +200,14 @@ class BaseCovariateExperiment(pl.LightningModule):
         pass
 
     def train_dataloader(self):
-        return DataLoader(self.ukbb_train, batch_size=self.train_batch_size, shuffle=True)
+        return DataLoader(self.adni_train, batch_size=self.train_batch_size, shuffle=True)
 
     def val_dataloader(self):
-        self.val_loader = DataLoader(self.ukbb_val, batch_size=self.test_batch_size, shuffle=False)
+        self.val_loader = DataLoader(self.adni_val, batch_size=self.test_batch_size, shuffle=False)
         return self.val_loader
 
     def test_dataloader(self):
-        self.test_loader = DataLoader(self.ukbb_test, batch_size=self.test_batch_size, shuffle=False)
+        self.test_loader = DataLoader(self.adni_test, batch_size=self.test_batch_size, shuffle=False)
         return self.test_loader
 
     def forward(self, *args, **kwargs):

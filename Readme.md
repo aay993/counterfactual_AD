@@ -1,16 +1,8 @@
-# Deep Structural Causal Models for Tractable Counterfactual Inference
+# Deep Structural Causal Modelling of the Clinical and Radiological Phenotype of Alzheimer's Disease
 
-[![arXiv](http://img.shields.io/badge/arXiv-2006.06485-B31B1B.svg)](https://arxiv.org/abs/2006.06485)
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/biomedia-mira/deepscm/blob/master/deepscm/experiments/plotting/ukbb/interactive_plots.ipynb)
+This repository contains code to replicate the experiment in the NeurIPS workshop submission titled: 'Deep Structural Causal Modelling of the Clinical and Radiological Phenotype of Alzheimer's Disease'. 
 
-![Counterfactual Example](assets/example.png "Counterfactual Example")
-
-This repository contains the code for the paper
-> N. Pawlowski<sup>+</sup>, D. C. Castro<sup>+</sup>, B. Glocker. _Deep Structural Causal Models for Tractable Counterfactual Inference_. Advances in Neural Information Processing Systems. 2020 [[NeurIPS Proceedings]](https://proceedings.neurips.cc//paper_files/paper/2020/hash/0987b8b338d6c90bbedd8631bc499221-Abstract.html) [[arXiv]](https://arxiv.org/abs/2006.06485) [[NeurIPS]](https://neurips.cc/virtual/2020/public/poster_0987b8b338d6c90bbedd8631bc499221.html)[[Poster]](assets/dscm_poster.pdf)
-
-(<sup>+</sup>: joint first authors)
-
-If you use these tools or datasets in your publications, please consider citing the accompanying paper with a BibTeX entry similar to the following:
+The work builds on the paper 'Deep Structural Causal Models for Tractable Counterfactual Inference' by Pawlowski and Castro et al.: 
 
 ```
 @inproceedings{pawlowski2020dscm,
@@ -21,7 +13,29 @@ If you use these tools or datasets in your publications, please consider citing 
 }
 ```
 
-Please refer to the [tagged code](https://github.com/biomedia-mira/deepscm/tree/neurips_2020) for the code used for the NeurIPS publication.
+and on work by Reinhold et al.: 
+
+```
+@article{Reinhold2021ASclerosis,
+    title = {{A Structural Causal Model for MR Images of Multiple Sclerosis}},
+    year = {2021},
+    journal = {Lecture Notes in Computer Science (including subseries Lecture Notes in Artificial Intelligence and Lecture Notes in Bioinformatics)},
+    author = {Reinhold, Jacob C. and Carass, Aaron and Prince, Jerry L.},
+    pages = {782--792},
+    volume = {12905 LNCS},
+    publisher = {Springer Science and Business Media Deutschland GmbH},
+    url = {https://link.springer.com/chapter/10.1007/978-3-030-87240-3_75},
+    isbn = {9783030872397},
+    doi = {10.1007/978-3-030-87240-3{\_}75/FIGURES/6},
+    issn = {16113349},
+    arxivId = {2103.03158},
+    keywords = {Causal inference, MRI, Multiple sclerosis}
+}
+```
+
+For the original DSCM paper, please refer to the [tagged code](https://github.com/biomedia-mira/deepscm/tree/neurips_2020) for the code used for the NeurIPS publication.
+
+
 
 ## Structure
 This repository contains code and assets structured as follows:
@@ -31,50 +45,33 @@ This repository contains code and assets structured as follows:
     - `datasets/`: script for dataset generation and data loading used in experiments
     - `distributions/`: implementations of useful distributions or transformations
     - `experiments/`: implementation of experiments
-    - `morphomnist/`: soft link to morphomnist tools in submodules
-    - `submodules/`: git submodules
-- `assets/`
-    - `data/`:
-        - `morphomnist/`: used synthetic morphomnist dataset
-        - `ukbb/`: subset of the ukbb testset that was used for the counterfactuals 
-    - `models/`: checkpoints of the trained models
+- `SVIExperiment/`
+    - `ConditionalVISEM/`: checkpoints of the trained model
 
 ## Requirements
-We use Python 3.7.2 for all experiments and you will need to install the following packages:
+Python 3.7.2 is used for all experiments and you will need to install the following packages:
 ```
 pip install numpy pandas pyro-ppl pytorch-lightning scikit-image scikit-learn scipy seaborn tensorboard torch torchvision
 ```
 or simply run `pip install -r requirements.txt`.
-You will also need to sync the submodule: `git submodule update --recursive --init`.
+
 
 ## Usage
 
 We assume that the code is executed from the root directory of this repository.
 
-### Morpho-MNIST
+### Training and evaluation 
 
-You can recreate the data using the data creation script as:
+The model can be trained using:
 ```
-python -m deepscm.datasets.morphomnist.create_synth_thickness_intensity_data --data-dir /path/to/morphomnist -o /path/to/dataset
+python -m deepscm.experiments.medical.trainer -e SVIExperiment -m ConditionalVISEM --default_root_dir /path/to/root/directory/ --downsample 3 --decoder_type fixed_var --train_batch_size 256 --gpus 0
 ```
-where `/path/to/morphomnist` refers to the directory containing the files from the original MNIST dataset with the `original` morphometrics from [Morpho-MNIST](https://github.com/dccastro/Morpho-MNIST) dataset. Alternatively we provide the generated data in `data/morphomnist`. You can then train the models as:
-```
-python -m deepscm.experiments.morphomnist.trainer -e SVIExperiment -m {IndependentVISEM, ConditionalDecoderVISEM, ConditionalVISEM} --data_dir /path/to/data --default_root_dir /path/to/checkpoints --decoder_type fixed_var {--gpus 0}
-```
-where `IndependentVISEM` is the independent model, `ConditionalDecoderVISEM` is the conditional model and `ConditionalVISEM` is the full model. The checkpoints are saved in `/path/to/checkpoints` or the provided checkpoints can be used for testing and plotting:
+where `/path/to/root/directory/` refers to the root directory. Note that `ConditionalVISEM` is the full model (DSCM). The checkpoints are saved in `/path/to/checkpoints` or the provided checkpoints can be used for testing and plotting:
 ```
 python -m deepscm.experiments.morphomnist.tester -c /path/to/checkpoint/version_?
 ```
-where `/path/to/checkpoint/version_?` refers to the path containing the specific [pytorch-lightning](https://github.com/PyTorchLightning/pytorch-lightning) run. The notebooks for plotting are situated in [`deepscm/experiments/plotting/morphomnist`](deepscm/experiments/plotting/morphomnist).
+where `/path/to/checkpoint/version_?` refers to the path containing the specific [pytorch-lightning](https://github.com/PyTorchLightning/pytorch-lightning) run. The notebooks for plotting are situated in [`deepscm/experiments/plotting/`](deepscm/experiments/plotting/).
 
-### UKBB
+### ADNI
 
-We are unable to share the UKBB dataset. However, if you have access to the UK Biobank or a similar dataset of brain scans, you can then train the models as:
-```
-python -m deepscm.experiments.medical.trainer -e SVIExperiment -m ConditionalVISEM --default_root_dir /path/to/checkpoints --downsample 3 --decoder_type fixed_var --train_batch_size 256 {--gpus 0}
-```
-The checkpoints are saved in `/path/to/checkpoints` or the provided checkpoints can be used for testing and plotting:
-```
-python -m deepscm.experiments.medical.tester -c /path/to/checkpoint/version_?
-```
-The notebooks for plotting are situated in [`deepscm/experiments/plotting/ukbb`](deepscm/experiments/plotting/ukbb).
+We are unable to share the ADNI dataset. However, the research data repository is accesible following a data application here: [ADNI-data](https://adni.loni.usc.edu/data-samples/access-data/#access_data). 
